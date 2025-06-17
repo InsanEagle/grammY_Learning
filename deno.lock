@@ -2,7 +2,9 @@
   "version": "5",
   "specifiers": {
     "jsr:@std/dotenv@~0.225.5": "0.225.5",
-    "jsr:@std/path@1.0.9": "1.0.9"
+    "jsr:@std/path@1.0.9": "1.0.9",
+    "npm:chrono-node@*": "2.8.3",
+    "npm:chrono-node@^2.6.5": "2.8.3"
   },
   "jsr": {
     "@std/dotenv@0.225.5": {
@@ -12,10 +14,22 @@
       "integrity": "260a49f11edd3db93dd38350bf9cd1b4d1366afa98e81b86167b4e3dd750129e"
     }
   },
+  "npm": {
+    "chrono-node@2.8.3": {
+      "integrity": "sha512-YukiXak31pshonVWaeJ9cZ4xxWIlbsyn5qYUkG5pQ+usZ6l22ASXDIk0kHUQkIBNOCLRevFkHJjnGKXwZNtyZw==",
+      "dependencies": [
+        "dayjs"
+      ]
+    },
+    "dayjs@1.11.13": {
+      "integrity": "sha512-oaMBel6gjolK862uaPQOVTA7q3TZhuSvuMQAAglQDOWYO9A91IrAOUJEyKVlqJlHE0vq5p5UXxzdPfMH/x6xNg=="
+    }
+  },
   "redirects": {
     "https://lib.deno.dev/x/grammy@1.x/mod.ts": "https://deno.land/x/grammy@v1.36.3/mod.ts",
     "https://lib.deno.dev/x/grammy@1.x/types.ts": "https://deno.land/x/grammy@v1.36.3/types.ts",
-    "https://lib.deno.dev/x/grammy@v1/mod.ts": "https://deno.land/x/grammy@v1.36.3/mod.ts"
+    "https://lib.deno.dev/x/grammy@v1/mod.ts": "https://deno.land/x/grammy@v1.36.3/mod.ts",
+    "https://lib.deno.dev/x/grammy@v1/types.ts": "https://deno.land/x/grammy@v1.36.3/types.ts"
   },
   "remote": {
     "https://cdn.skypack.dev/-/debug@v4.3.4-o4liVvMlOnQWbLSYZMXw/dist=es2019,mode=imports/optimized/debug.js": "671100993996e39b501301a87000607916d4d2d9f8fc8e9c5200ae5ba64a1389",
@@ -72,7 +86,8 @@
   },
   "workspace": {
     "dependencies": [
-      "jsr:@std/dotenv@~0.225.5"
+      "jsr:@std/dotenv@~0.225.5",
+      "npm:chrono-node@^2.6.5"
     ]
   }
 }

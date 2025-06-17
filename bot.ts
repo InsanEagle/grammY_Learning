@@ -1,4 +1,5 @@
 import "@std/dotenv/load";
+import * as chrono from "chrono-node/ru";
 
 import {
   Bot,
@@ -18,9 +19,15 @@ import { MySessionContext } from "./src/db/freeStorage.ts";
 
 import { mainMenu } from "./src/menus/mainMenu.ts";
 
+// Handlers import
+
 import { addTaskHandler } from "./src/handlers/tasks/addTaskHandler.ts";
 import { tasksHandler } from "./src/handlers/tasks/tasksHandler.ts";
 import { deleteTaskHandler } from "./src/handlers/tasks/deleteTaskHandler.ts";
+
+import { addReminderHandler } from "./src/handlers/reminders/addReminderHandler.ts";
+import { remindersHandler } from "./src/handlers/reminders/remindersHandler.ts";
+import { deleteReminderHandler } from "./src/handlers/reminders/deleteReminderHandler.ts";
 
 // export type MyContext = MySessionContext & ConversationContext;
 // export type ConversationContext = ConversationFlavor<Context>;
@@ -41,7 +48,11 @@ export const bot = new Bot<MyContext>(BOT_API_KEY);
 
 bot.use(
   session({
-    initial: () => ({ tasksList: [] }),
+    initial: () => {
+      const init = { tasksList: [], remindersList: [] };
+      console.log("Initializing session:", init);
+      return init;
+    },
     storage: freeStorage<SessionData>(bot.token),
   })
 );
@@ -90,8 +101,100 @@ export async function waitForTaskToDelete(
   });
 }
 
+export async function waitForReminderToAdd(
+  conversation: MyConversation,
+  ctx: Context
+) {
+  const session = await conversation.external((ctx) => ctx.session);
+
+  await ctx.reply(
+    "Please provide a reminder to add. It should be in the future"
+  );
+  const { message } = await conversation.waitUntil(
+    (ctx) => {
+      const text = ctx.msg?.text;
+      if (!text) return false;
+
+      const reminderDate = chrono.parseDate(
+        text,
+        { timezone: "UTC +3" },
+        { forwardDate: true }
+      );
+      if (!reminderDate || reminderDate < new Date()) {
+        return false;
+      }
+
+      return true;
+    },
+    {
+      otherwise: (ctx) =>
+        ctx.reply(
+          "Please provide a reminder to add. It should be in the future"
+        ),
+    }
+  );
+
+  if (message?.text) {
+    const reminderDate = chrono.parseDate(
+      message.text,
+      { timezone: "UTC +3" },
+      { forwardDate: true }
+    );
+
+    const reminderObj = {
+      reminderString: message.text,
+      reminderTime: reminderDate,
+    };
+
+    if (!session.remindersList) {
+      session.remindersList = [];
+    }
+
+    session.remindersList.push(reminderObj);
+    await ctx.reply(`Reminder: ${message.text} successfully added`);
+  } else {
+    await ctx.reply(`Reminder not found`);
+  }
+
+  await conversation.external((ctx) => {
+    ctx.session = session;
+  });
+}
+
+export async function waitForRemindToDelete(
+  conversation: MyConversation,
+  ctx: Context
+) {
+  const session = await conversation.external((ctx) => ctx.session);
+
+  await ctx.reply("Please provide a reminder number to delete.");
+  const { message } = await conversation.waitUntil(
+    (ctx) => {
+      const text = ctx.msg?.text;
+      return text !== undefined && text !== null && /^\d+$/.test(text);
+    },
+    {
+      otherwise: (ctx) =>
+        ctx.reply("Please provide a reminder number to delete."),
+    }
+  );
+  const reminder = session.remindersList[Number(message?.text) - 1];
+  if (reminder) {
+    session.remindersList.splice(Number(message?.text) - 1, 1);
+    await ctx.reply(`Reminder: ${reminder} successfully deleted`);
+  } else {
+    await ctx.reply(`Reminder not found`);
+  }
+  await conversation.external((ctx) => {
+    ctx.session = session;
+  });
+}
+
 bot.use(createConversation(waitForTaskToAdd));
 bot.use(createConversation(waitForTaskToDelete));
+
+bot.use(createConversation(waitForReminderToAdd));
+bot.use(createConversation(waitForRemindToDelete));
 
 // Make it interactive.
 bot.use(mainMenu);
@@ -101,6 +204,15 @@ await bot.api.setMyCommands([
   { command: "start", description: "Start the bot" },
   { command: "help", description: "Show available commands" },
   { command: "menu", description: "Open menu" },
+  { command: "addtask", description: "Add task to the list" },
+  { command: "deletetask", description: "Delete task from the list" },
+  { command: "tasks", description: "Open tasks list" },
+  { command: "donetask", description: "Make task done or undone" },
+  { command: "addreminder", description: "Add reminder to the list" },
+  { command: "deletereminder", description: "Delete reminder from the list" },
+  { command: "reminders", description: "Open reminders list" },
+  { command: "currencies", description: "Open the list of currencies" },
+  { command: "convert", description: "Convert currency to another one" },
 ]);
 
 // Remove keyboard
@@ -129,11 +241,9 @@ bot.command("deletetask", (ctx) => deleteTaskHandler(ctx));
 bot.command("donetask", (ctx) => ctx.reply("Interactive menu with buttons"));
 
 // Handle remind commands
-bot.command("remind", (ctx) => ctx.reply("Interactive menu with buttons"));
-bot.command("reminders", (ctx) => ctx.reply("Interactive menu with buttons"));
-bot.command("deletereminder", (ctx) =>
-  ctx.reply("Interactive menu with buttons")
-);
+bot.command("addreminder", (ctx) => addReminderHandler(ctx));
+bot.command("reminders", (ctx) => remindersHandler(ctx));
+bot.command("deletereminder", (ctx) => deleteReminderHandler(ctx));
 
 // Handle currency converter commands
 bot.command("currencies", (ctx) => ctx.reply("Interactive menu with buttons"));
