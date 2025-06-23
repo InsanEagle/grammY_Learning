@@ -42,7 +42,7 @@ export async function deleteReminderConversation(
     const reminder = deleteReminderFromSession(session, index);
     if (reminder) {
       await ctx.reply(
-        `Reminder: ${reminder.reminderString} successfully deleted`
+        `Reminder: ${reminder.reminderString} (${reminder.reminderToDateString}) successfully deleted`
       );
     } else {
       await ctx.reply(`Reminder not found`);

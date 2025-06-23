@@ -47,7 +47,7 @@ export async function addReminderConversation(
       ctx.session = session;
     });
     await ctx.reply(
-      `Reminder: ${reminderObj.reminderString} successfully added`
+      `Reminder: ${reminderObj.reminderString} (${reminderObj.reminderToDateString}) successfully added`
     );
   }
 }
@@ -75,11 +75,23 @@ function createReminderObject(text: string) {
     { forwardDate: true }
   );
 
+  const parsedDateIndex = chrono.parse(text, { timezone: "UTC +3" })[0].index;
+  const parsedText = text.substring(0, parsedDateIndex).trim();
+
+  const dateString = reminderDate.toLocaleString("ru-RU", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+  });
+
   const id = generateId();
 
   return {
-    reminderString: text,
+    reminderString: parsedText,
     reminderTime: reminderDate,
+    reminderToDateString: dateString,
     reminderIsActive: false,
     id,
   };

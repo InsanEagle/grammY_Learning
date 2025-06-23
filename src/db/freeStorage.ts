@@ -13,6 +13,7 @@ interface Task {
 interface Reminder {
   reminderString: string;
   reminderTime: Date;
+  reminderToDateString: string;
   reminderIsActive: boolean;
   id: string;
 }

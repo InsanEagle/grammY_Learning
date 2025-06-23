@@ -9,7 +9,12 @@ export function remindersHandler(ctx: MySessionContext) {
     return ctx.reply("No reminders in the list");
   }
   const reminders = list
-    .map((reminder, index) => `${index + 1}. ${reminder.reminderString}`)
+    .map(
+      (reminder, index) =>
+        `${index + 1}. ${reminder.reminderString} (${
+          reminder.reminderToDateString
+        })`
+    )
     .join("\n");
   ctx.reply(reminders);
 }
