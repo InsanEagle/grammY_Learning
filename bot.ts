@@ -39,6 +39,7 @@ import { deleteReminderConversation } from "./src/features/reminders/reminderDel
 // Testing import
 import { clearRemindersList } from "./src/test/clearRemindersList.ts";
 import { clearTasksList } from "./src/test/clearTasksList.ts";
+import { restoreScheduledJobs } from "./src/test/restoreJobs.ts";
 
 export type MyContext = ConversationFlavor<MySessionContext>;
 export type MyConversation = Conversation<MyContext>;
@@ -65,8 +66,10 @@ bot.use(
       return init;
     },
     storage,
-  })
+  }),
 );
+
+restoreScheduledJobs(bot, storage);
 
 // bot.use(
 //   session({
@@ -111,8 +114,9 @@ await bot.api.setMyCommands([
 
 // Handle menu commands.
 bot.command("start", (ctx) => ctx.reply("Welcome! Up and running."));
-bot.command("help", (ctx) =>
-  ctx.reply("There is a list of all available commands")
+bot.command(
+  "help",
+  (ctx) => ctx.reply("There is a list of all available commands"),
 );
 bot.command("menu", async (ctx) => {
   // Send the menu.

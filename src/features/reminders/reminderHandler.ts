@@ -11,9 +11,9 @@ export function remindersHandler(ctx: MySessionContext) {
   const reminders = list
     .map(
       (reminder, index) =>
-        `${index + 1}. ${reminder.reminderString} (${
-          reminder.reminderToDateString
-        })`
+        `${
+          index + 1
+        }. ${reminder.reminderString} (${reminder.reminderToDateString})`,
     )
     .join("\n");
   ctx.reply(reminders);

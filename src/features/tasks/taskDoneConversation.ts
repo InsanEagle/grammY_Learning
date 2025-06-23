@@ -5,7 +5,7 @@ import { SessionData } from "../../db/freeStorage.ts";
 
 export async function doneTaskConversation(
   conversation: MyConversation,
-  ctx: Context
+  ctx: Context,
 ) {
   const session = await conversation.external((ctx) => ctx.session);
   const listString = session.tasksList
@@ -23,11 +23,11 @@ export async function doneTaskConversation(
     doneTaskByNumber(
       Number(ctx.message.text.substring("/donetask".length).trim()),
       session,
-      ctx
+      ctx,
     );
   } else {
     ctx.reply(
-      `${listString}\n\nPlease provide a task number to make done/undone.`
+      `${listString}\n\nPlease provide a task number to make done/undone.`,
     );
     const { message } = await conversation.waitUntil(
       (ctx) => {
@@ -37,7 +37,7 @@ export async function doneTaskConversation(
       {
         otherwise: (ctx) =>
           ctx.reply("Please provide a task number to make done/undone."),
-      }
+      },
     );
     doneTaskByNumber(Number(message?.text), session, ctx);
   }
@@ -50,18 +50,18 @@ export async function doneTaskConversation(
 async function doneTaskByNumber(
   number: number,
   session: SessionData,
-  ctx: Context
+  ctx: Context,
 ) {
   const task = session.tasksList[number - 1];
   if (task) {
     task.taskIsDone = !task.taskIsDone;
     task.taskIsDone
       ? await ctx.reply(
-          `Task: ${task.taskString} successfully marked as done ✅`
-        )
+        `Task: ${task.taskString} successfully marked as done ✅`,
+      )
       : await ctx.reply(
-          `Task: ${task.taskString} successfully marked as undone ❌`
-        );
+        `Task: ${task.taskString} successfully marked as undone ❌`,
+      );
   } else {
     await ctx.reply(`Task not found`);
   }

@@ -5,7 +5,7 @@ import { SessionData } from "../../db/freeStorage.ts";
 
 export async function deleteTaskConversation(
   conversation: MyConversation,
-  ctx: Context
+  ctx: Context,
 ) {
   const session = await conversation.external((ctx) => ctx.session);
   const listString = session.tasksList
@@ -23,7 +23,7 @@ export async function deleteTaskConversation(
     deleteTaskByNumber(
       Number(ctx.message.text.substring("/deletetask".length).trim()),
       session,
-      ctx
+      ctx,
     );
   } else {
     ctx.reply(`${listString}\n\nPlease provide a task number to delete.`);
@@ -35,7 +35,7 @@ export async function deleteTaskConversation(
       {
         otherwise: (ctx) =>
           ctx.reply("Please provide a task number to delete."),
-      }
+      },
     );
     deleteTaskByNumber(Number(message?.text), session, ctx);
   }
@@ -48,7 +48,7 @@ export async function deleteTaskConversation(
 async function deleteTaskByNumber(
   number: number,
   session: SessionData,
-  ctx: Context
+  ctx: Context,
 ) {
   const task = session.tasksList[number - 1];
   if (task) {

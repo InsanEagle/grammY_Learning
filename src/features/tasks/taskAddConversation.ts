@@ -4,7 +4,7 @@ import { MyConversation } from "../../../bot.ts";
 
 export async function addTaskConversation(
   conversation: MyConversation,
-  ctx: Context
+  ctx: Context,
 ) {
   const session = await conversation.external((ctx) => ctx.session);
 
@@ -35,6 +35,6 @@ export async function addTaskConversation(
   await ctx.reply(
     `Task: ${
       session.tasksList[session.tasksList.length - 1].taskString
-    } successfully added`
+    } successfully added`,
   );
 }

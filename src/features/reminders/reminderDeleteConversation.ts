@@ -1,11 +1,11 @@
 import { type Context } from "https://deno.land/x/grammy@v1.36.3/mod.ts";
 
 import { MyConversation } from "../../../bot.ts";
-import { SessionData, jobStore } from "../../db/freeStorage.ts";
+import { jobStore, SessionData } from "../../db/freeStorage.ts";
 
 export async function deleteReminderConversation(
   conversation: MyConversation,
-  ctx: Context
+  ctx: Context,
 ) {
   const session = await conversation.external((ctx) => ctx.session);
   const listString = session.remindersList
@@ -24,14 +24,14 @@ export async function deleteReminderConversation(
   // If not valid inline, wait for user input
   if (!reminderIndex) {
     await ctx.reply(
-      `${listString}\n\nPlease provide a reminder number to delete.`
+      `${listString}\n\nPlease provide a reminder number to delete.`,
     );
     const { message } = await conversation.waitUntil(
       (ctx) => isValidReminderIndex(ctx.msg?.text || ""),
       {
         otherwise: (ctx) =>
           ctx.reply("Please provide a reminder number to delete."),
-      }
+      },
     );
     reminderIndex = message?.text;
   }
@@ -42,7 +42,7 @@ export async function deleteReminderConversation(
     const reminder = deleteReminderFromSession(session, index);
     if (reminder) {
       await ctx.reply(
-        `Reminder: ${reminder.reminderString} (${reminder.reminderToDateString}) successfully deleted`
+        `Reminder: ${reminder.reminderString} (${reminder.reminderToDateString}) successfully deleted`,
       );
     } else {
       await ctx.reply(`Reminder not found`);

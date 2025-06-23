@@ -10,7 +10,7 @@ import { createScheduleReminder } from "./reminderScheduler.ts";
 
 export async function addReminderConversation(
   conversation: MyConversation,
-  ctx: Context
+  ctx: Context,
 ) {
   const session = await conversation.external((ctx) => ctx.session);
   let reminderText: string | undefined;
@@ -26,16 +26,16 @@ export async function addReminderConversation(
   // If not valid inline, wait for user input
   if (!reminderText) {
     await ctx.reply(
-      "Please provide a reminder to add. It should be in the future"
+      "Please provide a reminder to add. It should be in the future",
     );
     const { message } = await conversation.waitUntil(
       (ctx) => isValidReminderText(ctx.msg?.text || ""),
       {
         otherwise: (ctx) =>
           ctx.reply(
-            "Please provide a reminder to add. It should be in the future"
+            "Please provide a reminder to add. It should be in the future",
           ),
-      }
+      },
     );
     reminderText = message?.text;
   }
@@ -47,7 +47,7 @@ export async function addReminderConversation(
       ctx.session = session;
     });
     await ctx.reply(
-      `Reminder: ${reminderObj.reminderString} (${reminderObj.reminderToDateString}) successfully added`
+      `Reminder: ${reminderObj.reminderString} (${reminderObj.reminderToDateString}) successfully added`,
     );
   }
 }
@@ -55,7 +55,7 @@ export async function addReminderConversation(
 async function addReminderToSession(
   ctx: Context,
   session: SessionData,
-  text: string
+  text: string,
 ) {
   const reminderObj = createReminderObject(text);
   const id = reminderObj.id;
@@ -72,7 +72,7 @@ function createReminderObject(text: string) {
   const reminderDate = chrono.parseDate(
     text,
     { timezone: "UTC +3" },
-    { forwardDate: true }
+    { forwardDate: true },
   );
 
   const parsedDateIndex = chrono.parse(text, { timezone: "UTC +3" })[0].index;
@@ -103,10 +103,10 @@ function isValidReminderText(text: string): boolean {
   const reminderDate = chrono.parseDate(
     text,
     { timezone: "UTC +3" },
-    { forwardDate: true }
+    { forwardDate: true },
   );
 
-  return !!reminderDate && reminderDate > new Date();
+  return reminderDate != null && reminderDate > new Date();
 }
 
 function generateId(): string {
