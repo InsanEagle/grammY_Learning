@@ -1,9 +1,11 @@
 {
   "imports": {
     "@std/dotenv": "jsr:@std/dotenv@^0.225.5",
-    "chrono-node": "npm:chrono-node@^2.6.5"
+    "@types/node-schedule": "npm:@types/node-schedule@^2.1.7",
+    "chrono-node": "npm:chrono-node@^2.6.5",
+    "node-schedule": "npm:node-schedule@^2.1.1"
   },
   "tasks": {
-    "dev": "deno run --allow-read --allow-net --allow-import --allow-env bot.ts"
+    "dev": "deno run --allow-read --allow-write --allow-net --allow-import --allow-env bot.ts"
   }
 }

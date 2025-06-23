@@ -2,9 +2,9 @@ import { Menu } from "https://deno.land/x/grammy_menu@v1.3.0/mod.ts";
 
 import { MyContext } from "../../bot.ts";
 
-import { addTaskHandler } from "../handlers/tasks/addTaskHandler.ts";
-import { deleteTaskHandler } from "../handlers/tasks/deleteTaskHandler.ts";
-import { tasksHandler } from "../handlers/tasks/tasksHandler.ts";
+import { addTaskHandler } from "../features/tasks/taskAddHandler.ts";
+import { deleteTaskHandler } from "../features/tasks/taskDeleteHandler.ts";
+import { tasksHandler } from "../features/tasks/taskHandler.ts";
 
 export const tasksMenu = new Menu<MyContext>("tasks-menu")
   .text("Add task", (ctx) => addTaskHandler(ctx))

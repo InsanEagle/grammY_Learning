@@ -1,12 +1,9 @@
 import "@std/dotenv/load";
-import * as chrono from "chrono-node/ru";
 
-import {
-  Bot,
-  session,
-  Context,
-} from "https://deno.land/x/grammy@v1.36.3/mod.ts";
-import { freeStorage } from "https://deno.land/x/grammy_storages@v2.4.2/free/src/mod.ts";
+// GrammY imports
+import { Bot, session } from "https://deno.land/x/grammy@v1.36.3/mod.ts";
+// import { freeStorage } from "https://deno.land/x/grammy_storages@v2.4.2/free/src/mod.ts";
+import { FileAdapter } from "https://deno.land/x/grammy_storages/file/src/mod.ts";
 import {
   type Conversation,
   type ConversationFlavor,
@@ -14,26 +11,33 @@ import {
   createConversation,
 } from "https://deno.land/x/grammy_conversations@v2.0.1/mod.ts";
 
+// Database import
 import { SessionData } from "./src/db/freeStorage.ts";
 import { MySessionContext } from "./src/db/freeStorage.ts";
 
+// Menus import
 import { mainMenu } from "./src/menus/mainMenu.ts";
 
 // Handlers import
+import { addTaskHandler } from "./src/features/tasks/taskAddHandler.ts";
+import { tasksHandler } from "./src/features/tasks/taskHandler.ts";
+import { deleteTaskHandler } from "./src/features/tasks/taskDeleteHandler.ts";
 
-import { addTaskHandler } from "./src/handlers/tasks/addTaskHandler.ts";
-import { tasksHandler } from "./src/handlers/tasks/tasksHandler.ts";
-import { deleteTaskHandler } from "./src/handlers/tasks/deleteTaskHandler.ts";
+import { addReminderHandler } from "./src/features/reminders/reminderAddHandler.ts";
+import { remindersHandler } from "./src/features/reminders/reminderHandler.ts";
+import { deleteReminderHandler } from "./src/features/reminders/reminderDeleteHandler.ts";
 
-import { addReminderHandler } from "./src/handlers/reminders/addReminderHandler.ts";
-import { remindersHandler } from "./src/handlers/reminders/remindersHandler.ts";
-import { deleteReminderHandler } from "./src/handlers/reminders/deleteReminderHandler.ts";
+// Conversations import
+import { addTaskConversation } from "./src/features/tasks/taskAddConversation.ts";
+import { deleteTaskConversation } from "./src/features/tasks/taskDeleteConversation.ts";
 
-// export type MyContext = MySessionContext & ConversationContext;
-// export type ConversationContext = ConversationFlavor<Context>;
+import { addReminderConversation } from "./src/features/reminders/reminderAddConversation.ts";
+import { deleteReminderConversation } from "./src/features/reminders/reminderDeleteConversation.ts";
+
+// Testing import
+import { clearRemindersList } from "./src/test/clearRemindersList.ts";
 
 export type MyContext = ConversationFlavor<MySessionContext>;
-// export type MyConversationContext = Context;
 export type MyConversation = Conversation<MyContext>;
 
 // Create an instance of the `Bot` class and pass your bot token to it.
@@ -46,6 +50,10 @@ export const bot = new Bot<MyContext>(BOT_API_KEY);
 // You can now register listeners on your bot object `bot`.
 // grammY will call the listeners when users send messages to your bot.
 
+export const storage = new FileAdapter<SessionData>({
+  dirName: "sessions",
+});
+
 bot.use(
   session({
     initial: () => {
@@ -53,148 +61,28 @@ bot.use(
       console.log("Initializing session:", init);
       return init;
     },
-    storage: freeStorage<SessionData>(bot.token),
+    storage,
   })
 );
 
+// bot.use(
+//   session({
+//     initial: () => {
+//       const init = { tasksList: [], remindersList: [] };
+//       console.log("Initializing session:", init);
+//       return init;
+//     },
+//     storage: freeStorage<SessionData>(bot.token),
+//   })
+// );
+
 bot.use(conversations());
-export async function waitForTaskToAdd(
-  conversation: MyConversation,
-  ctx: Context
-) {
-  const session = await conversation.external((ctx) => ctx.session);
 
-  await ctx.reply("Please provide a task to add.");
-  const { message } = await conversation.waitFor("message:text", {
-    otherwise: (ctx) => ctx.reply("Please send a text message!"),
-  });
-  session.tasksList.push(message.text);
-  await conversation.external((ctx) => {
-    ctx.session = session;
-  });
-  await ctx.reply(`Task: ${message.text} successfully added`);
-}
+bot.use(createConversation(addTaskConversation));
+bot.use(createConversation(deleteTaskConversation));
 
-export async function waitForTaskToDelete(
-  conversation: MyConversation,
-  ctx: Context
-) {
-  const session = await conversation.external((ctx) => ctx.session);
-
-  await ctx.reply("Please provide a task number to delete.");
-  const { message } = await conversation.waitUntil(
-    (ctx) => {
-      const text = ctx.msg?.text;
-      return text !== undefined && text !== null && /^\d+$/.test(text);
-    },
-    { otherwise: (ctx) => ctx.reply("Please provide a task number to delete.") }
-  );
-  const task = session.tasksList[Number(message?.text) - 1];
-  if (task) {
-    session.tasksList.splice(Number(message?.text) - 1, 1);
-    await ctx.reply(`Task: ${task} successfully deleted`);
-  } else {
-    await ctx.reply(`Task not found`);
-  }
-  await conversation.external((ctx) => {
-    ctx.session = session;
-  });
-}
-
-export async function waitForReminderToAdd(
-  conversation: MyConversation,
-  ctx: Context
-) {
-  const session = await conversation.external((ctx) => ctx.session);
-
-  await ctx.reply(
-    "Please provide a reminder to add. It should be in the future"
-  );
-  const { message } = await conversation.waitUntil(
-    (ctx) => {
-      const text = ctx.msg?.text;
-      if (!text) return false;
-
-      const reminderDate = chrono.parseDate(
-        text,
-        { timezone: "UTC +3" },
-        { forwardDate: true }
-      );
-      if (!reminderDate || reminderDate < new Date()) {
-        return false;
-      }
-
-      return true;
-    },
-    {
-      otherwise: (ctx) =>
-        ctx.reply(
-          "Please provide a reminder to add. It should be in the future"
-        ),
-    }
-  );
-
-  if (message?.text) {
-    const reminderDate = chrono.parseDate(
-      message.text,
-      { timezone: "UTC +3" },
-      { forwardDate: true }
-    );
-
-    const reminderObj = {
-      reminderString: message.text,
-      reminderTime: reminderDate,
-    };
-
-    if (!session.remindersList) {
-      session.remindersList = [];
-    }
-
-    session.remindersList.push(reminderObj);
-    await ctx.reply(`Reminder: ${message.text} successfully added`);
-  } else {
-    await ctx.reply(`Reminder not found`);
-  }
-
-  await conversation.external((ctx) => {
-    ctx.session = session;
-  });
-}
-
-export async function waitForRemindToDelete(
-  conversation: MyConversation,
-  ctx: Context
-) {
-  const session = await conversation.external((ctx) => ctx.session);
-
-  await ctx.reply("Please provide a reminder number to delete.");
-  const { message } = await conversation.waitUntil(
-    (ctx) => {
-      const text = ctx.msg?.text;
-      return text !== undefined && text !== null && /^\d+$/.test(text);
-    },
-    {
-      otherwise: (ctx) =>
-        ctx.reply("Please provide a reminder number to delete."),
-    }
-  );
-  const reminder = session.remindersList[Number(message?.text) - 1];
-  if (reminder) {
-    session.remindersList.splice(Number(message?.text) - 1, 1);
-    await ctx.reply(`Reminder: ${reminder} successfully deleted`);
-  } else {
-    await ctx.reply(`Reminder not found`);
-  }
-  await conversation.external((ctx) => {
-    ctx.session = session;
-  });
-}
-
-bot.use(createConversation(waitForTaskToAdd));
-bot.use(createConversation(waitForTaskToDelete));
-
-bot.use(createConversation(waitForReminderToAdd));
-bot.use(createConversation(waitForRemindToDelete));
+bot.use(createConversation(addReminderConversation));
+bot.use(createConversation(deleteReminderConversation));
 
 // Make it interactive.
 bot.use(mainMenu);
@@ -211,18 +99,10 @@ await bot.api.setMyCommands([
   { command: "addreminder", description: "Add reminder to the list" },
   { command: "deletereminder", description: "Delete reminder from the list" },
   { command: "reminders", description: "Open reminders list" },
+  { command: "clearreminders", description: "Clear all reminders" },
   { command: "currencies", description: "Open the list of currencies" },
   { command: "convert", description: "Convert currency to another one" },
 ]);
-
-// Remove keyboard
-// bot.command("remove", async (ctx) => {
-//     await ctx.reply("Клавиатура удалена", {
-//         reply_markup: {
-//             remove_keyboard: true,
-//         },
-//     });
-// });
 
 // Handle menu commands.
 bot.command("start", (ctx) => ctx.reply("Welcome! Up and running."));
@@ -244,6 +124,10 @@ bot.command("donetask", (ctx) => ctx.reply("Interactive menu with buttons"));
 bot.command("addreminder", (ctx) => addReminderHandler(ctx));
 bot.command("reminders", (ctx) => remindersHandler(ctx));
 bot.command("deletereminder", (ctx) => deleteReminderHandler(ctx));
+bot.command("clearreminders", (ctx) => {
+  clearRemindersList(ctx.session);
+  return ctx.reply("All reminders have been cleared!");
+});
 
 // Handle currency converter commands
 bot.command("currencies", (ctx) => ctx.reply("Interactive menu with buttons"));
