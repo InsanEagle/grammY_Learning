@@ -22,6 +22,7 @@ import { mainMenu } from "./src/menus/mainMenu.ts";
 import { addTaskHandler } from "./src/features/tasks/taskAddHandler.ts";
 import { tasksHandler } from "./src/features/tasks/taskHandler.ts";
 import { deleteTaskHandler } from "./src/features/tasks/taskDeleteHandler.ts";
+import { doneTaskHandler } from "./src/features/tasks/taskDoneHandler.ts";
 
 import { addReminderHandler } from "./src/features/reminders/reminderAddHandler.ts";
 import { remindersHandler } from "./src/features/reminders/reminderHandler.ts";
@@ -30,6 +31,7 @@ import { deleteReminderHandler } from "./src/features/reminders/reminderDeleteHa
 // Conversations import
 import { addTaskConversation } from "./src/features/tasks/taskAddConversation.ts";
 import { deleteTaskConversation } from "./src/features/tasks/taskDeleteConversation.ts";
+import { doneTaskConversation } from "./src/features/tasks/taskDoneConversation.ts";
 
 import { addReminderConversation } from "./src/features/reminders/reminderAddConversation.ts";
 import { deleteReminderConversation } from "./src/features/reminders/reminderDeleteConversation.ts";
@@ -81,6 +83,7 @@ bot.use(conversations());
 
 bot.use(createConversation(addTaskConversation));
 bot.use(createConversation(deleteTaskConversation));
+bot.use(createConversation(doneTaskConversation));
 
 bot.use(createConversation(addReminderConversation));
 bot.use(createConversation(deleteReminderConversation));
@@ -120,7 +123,7 @@ bot.command("menu", async (ctx) => {
 bot.command("addtask", (ctx) => addTaskHandler(ctx));
 bot.command("tasks", (ctx) => tasksHandler(ctx));
 bot.command("deletetask", (ctx) => deleteTaskHandler(ctx));
-bot.command("donetask", (ctx) => ctx.reply("Interactive menu with buttons"));
+bot.command("donetask", (ctx) => doneTaskHandler(ctx));
 bot.command("cleartasks", (ctx) => {
   clearTasksList(ctx.session);
   return ctx.reply("All reminders have been cleared!");

@@ -5,13 +5,14 @@ import { MyContext } from "../../bot.ts";
 import { addTaskHandler } from "../features/tasks/taskAddHandler.ts";
 import { deleteTaskHandler } from "../features/tasks/taskDeleteHandler.ts";
 import { tasksHandler } from "../features/tasks/taskHandler.ts";
+import { doneTaskHandler } from "../features/tasks/taskDoneHandler.ts";
 
 export const tasksMenu = new Menu<MyContext>("tasks-menu")
   .text("Add task", (ctx) => addTaskHandler(ctx))
   .row()
   .text("Delete task", (ctx) => deleteTaskHandler(ctx))
   .row()
-  .text("Make task done", (ctx) => ctx.reply("You clicked on Make task done!"))
+  .text("Make task done", (ctx) => doneTaskHandler(ctx))
   .row()
   .text("List of tasks", (ctx) => tasksHandler(ctx))
   .row()

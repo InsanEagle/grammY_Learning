@@ -9,7 +9,11 @@ export function tasksHandler(ctx: MySessionContext) {
     return ctx.reply("No tasks in the list");
   }
   const tasks = list
-    .map((task, index) => `${index + 1}. ${task.taskString}`)
+    .map((task, index) => {
+      const mark = task.taskIsDone ? "✅" : "❌";
+      const status = task.taskIsDone ? "(done)" : "(undone)";
+      return `${mark} ${index + 1}. ${task.taskString} ${status}`;
+    })
     .join("\n");
   ctx.reply(tasks);
 }

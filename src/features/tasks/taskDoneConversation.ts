@@ -3,7 +3,7 @@ import { type Context } from "https://deno.land/x/grammy@v1.36.3/mod.ts";
 import { MyConversation } from "../../../bot.ts";
 import { SessionData } from "../../db/freeStorage.ts";
 
-export async function deleteTaskConversation(
+export async function doneTaskConversation(
   conversation: MyConversation,
   ctx: Context
 ) {
@@ -18,15 +18,17 @@ export async function deleteTaskConversation(
 
   if (
     ctx.has("message:text") &&
-    /^\d+$/.test(ctx.message.text.substring("/deletetask".length).trim())
+    /^\d+$/.test(ctx.message.text.substring("/donetask".length).trim())
   ) {
-    deleteTaskByNumber(
-      Number(ctx.message.text.substring("/deletetask".length).trim()),
+    doneTaskByNumber(
+      Number(ctx.message.text.substring("/donetask".length).trim()),
       session,
       ctx
     );
   } else {
-    ctx.reply(`${listString}\n\nPlease provide a task number to delete.`);
+    ctx.reply(
+      `${listString}\n\nPlease provide a task number to make done/undone.`
+    );
     const { message } = await conversation.waitUntil(
       (ctx) => {
         const text = ctx.msg?.text;
@@ -34,10 +36,10 @@ export async function deleteTaskConversation(
       },
       {
         otherwise: (ctx) =>
-          ctx.reply("Please provide a task number to delete."),
+          ctx.reply("Please provide a task number to make done/undone."),
       }
     );
-    deleteTaskByNumber(Number(message?.text), session, ctx);
+    doneTaskByNumber(Number(message?.text), session, ctx);
   }
 
   await conversation.external((ctx) => {
@@ -45,15 +47,21 @@ export async function deleteTaskConversation(
   });
 }
 
-async function deleteTaskByNumber(
+async function doneTaskByNumber(
   number: number,
   session: SessionData,
   ctx: Context
 ) {
   const task = session.tasksList[number - 1];
   if (task) {
-    session.tasksList.splice(number - 1, 1);
-    await ctx.reply(`Task: ${task.taskString} successfully deleted`);
+    task.taskIsDone = !task.taskIsDone;
+    task.taskIsDone
+      ? await ctx.reply(
+          `Task: ${task.taskString} successfully marked as done ✅`
+        )
+      : await ctx.reply(
+          `Task: ${task.taskString} successfully marked as undone ❌`
+        );
   } else {
     await ctx.reply(`Task not found`);
   }
