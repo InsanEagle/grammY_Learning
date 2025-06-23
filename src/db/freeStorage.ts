@@ -5,6 +5,11 @@ import {
 
 import * as schedule from "node-schedule";
 
+interface Task {
+  taskString: string;
+  taskIsDone: boolean;
+}
+
 interface Reminder {
   reminderString: string;
   reminderTime: Date;
@@ -20,7 +25,7 @@ interface ScheduledJob {
 
 // Define the session structure.
 export interface SessionData {
-  tasksList: Array<string>;
+  tasksList: Array<Task>;
   remindersList: Array<Reminder>;
 }
 

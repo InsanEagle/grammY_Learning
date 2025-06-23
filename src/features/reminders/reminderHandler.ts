@@ -1,13 +1,15 @@
 import { MySessionContext } from "../../db/freeStorage.ts";
 
 export function remindersHandler(ctx: MySessionContext) {
-  if (!ctx.session.remindersList) {
-    ctx.session.remindersList = [];
+  let list = ctx.session.remindersList;
+  if (!list) {
+    list = [];
   }
-  if (ctx.session.remindersList.length === 0)
+  if (list.length === 0) {
     return ctx.reply("No reminders in the list");
-  const reminders = ctx.session.remindersList
-    .map((reminder) => reminder.reminderString)
+  }
+  const reminders = list
+    .map((reminder, index) => `${index + 1}. ${reminder.reminderString}`)
     .join("\n");
   ctx.reply(reminders);
 }

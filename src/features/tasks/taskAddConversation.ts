@@ -12,15 +12,21 @@ export async function addTaskConversation(
     ctx.has("message:text") &&
     ctx.message.text.substring("/addtask".length).trim()
   ) {
-    session.tasksList.push(
-      ctx.message.text.substring("/addtask".length).trim()
-    );
+    const task = {
+      taskString: ctx.message.text.substring("/addtask".length).trim(),
+      taskIsDone: false,
+    };
+    session.tasksList.push(task);
   } else {
     await ctx.reply("Please provide a task to add.");
     const { message } = await conversation.waitFor("message:text", {
       otherwise: (ctx) => ctx.reply("Please send a text message!"),
     });
-    session.tasksList.push(message.text);
+    const task = {
+      taskString: message.text,
+      taskIsDone: false,
+    };
+    session.tasksList.push(task);
   }
 
   await conversation.external((ctx) => {
@@ -28,7 +34,7 @@ export async function addTaskConversation(
   });
   await ctx.reply(
     `Task: ${
-      session.tasksList[session.tasksList.length - 1]
+      session.tasksList[session.tasksList.length - 1].taskString
     } successfully added`
   );
 }

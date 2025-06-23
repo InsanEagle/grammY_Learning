@@ -36,6 +36,7 @@ import { deleteReminderConversation } from "./src/features/reminders/reminderDel
 
 // Testing import
 import { clearRemindersList } from "./src/test/clearRemindersList.ts";
+import { clearTasksList } from "./src/test/clearTasksList.ts";
 
 export type MyContext = ConversationFlavor<MySessionContext>;
 export type MyConversation = Conversation<MyContext>;
@@ -96,6 +97,7 @@ await bot.api.setMyCommands([
   { command: "deletetask", description: "Delete task from the list" },
   { command: "tasks", description: "Open tasks list" },
   { command: "donetask", description: "Make task done or undone" },
+  { command: "cleartasks", description: "Clear all tasks" },
   { command: "addreminder", description: "Add reminder to the list" },
   { command: "deletereminder", description: "Delete reminder from the list" },
   { command: "reminders", description: "Open reminders list" },
@@ -119,6 +121,10 @@ bot.command("addtask", (ctx) => addTaskHandler(ctx));
 bot.command("tasks", (ctx) => tasksHandler(ctx));
 bot.command("deletetask", (ctx) => deleteTaskHandler(ctx));
 bot.command("donetask", (ctx) => ctx.reply("Interactive menu with buttons"));
+bot.command("cleartasks", (ctx) => {
+  clearTasksList(ctx.session);
+  return ctx.reply("All reminders have been cleared!");
+});
 
 // Handle remind commands
 bot.command("addreminder", (ctx) => addReminderHandler(ctx));

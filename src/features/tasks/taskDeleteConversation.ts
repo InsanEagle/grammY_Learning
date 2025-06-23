@@ -8,6 +8,9 @@ export async function deleteTaskConversation(
   ctx: Context
 ) {
   const session = await conversation.external((ctx) => ctx.session);
+  const listString = session.tasksList
+    .map((task, index) => `${index + 1}. ${task.taskString}`)
+    .join("\n");
 
   if (
     ctx.has("message:text") &&
@@ -19,7 +22,7 @@ export async function deleteTaskConversation(
       ctx
     );
   } else {
-    ctx.reply("Please provide a task number to delete.");
+    ctx.reply(`${listString}\n\nPlease provide a task number to delete.`);
     const { message } = await conversation.waitUntil(
       (ctx) => {
         const text = ctx.msg?.text;
@@ -46,7 +49,7 @@ async function deleteTaskByNumber(
   const task = session.tasksList[number - 1];
   if (task) {
     session.tasksList.splice(number - 1, 1);
-    await ctx.reply(`Task: ${task} successfully deleted`);
+    await ctx.reply(`Task: ${task.taskString} successfully deleted`);
   } else {
     await ctx.reply(`Task not found`);
   }

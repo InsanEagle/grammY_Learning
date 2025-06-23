@@ -8,6 +8,9 @@ export async function deleteReminderConversation(
   ctx: Context
 ) {
   const session = await conversation.external((ctx) => ctx.session);
+  const listString = session.remindersList
+    .map((reminder, index) => `${index + 1}. ${reminder.reminderString}`)
+    .join("\n");
   let reminderIndex: string | undefined;
 
   // Check if valid reminder index is provided inline
@@ -20,7 +23,9 @@ export async function deleteReminderConversation(
 
   // If not valid inline, wait for user input
   if (!reminderIndex) {
-    await ctx.reply("Please provide a reminder number to delete.");
+    await ctx.reply(
+      `${listString}\n\nPlease provide a reminder number to delete.`
+    );
     const { message } = await conversation.waitUntil(
       (ctx) => isValidReminderIndex(ctx.msg?.text || ""),
       {
