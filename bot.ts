@@ -1,7 +1,8 @@
 // GrammY imports
 import { Bot, session } from "https://deno.land/x/grammy@v1.36.3/mod.ts";
 // import { freeStorage } from "https://deno.land/x/grammy_storages@v2.4.2/free/src/mod.ts";
-import { FileAdapter } from "https://deno.land/x/grammy_storages/file/src/mod.ts";
+// import { FileAdapter } from "https://deno.land/x/grammy_storages/file/src/mod.ts";
+import { DenoKVAdapter } from "https://deno.land/x/grammy_storages/denokv/src/mod.ts";
 import {
   conversations,
   createConversation,
@@ -43,9 +44,9 @@ export const bot = new Bot<MyContext>(config.BOT_API_KEY);
 // You can now register listeners on your bot object `bot`.
 // grammY will call the listeners when users send messages to your bot.
 
-export const storage = new FileAdapter<SessionData>({
-  dirName: "sessions",
-});
+// Deno.kv storage
+const kv = await Deno.openKv("./sessions/kv.db");
+export const storage = new DenoKVAdapter<SessionData>(kv);
 
 bot.use(
   session({
@@ -58,7 +59,24 @@ bot.use(
   }),
 );
 
-restoreScheduledJobs(bot, storage);
+// File storage
+
+// export const storage = new FileAdapter<SessionData>({
+//   dirName: "sessions",
+// });
+
+// bot.use(
+//   session({
+//     initial: () => {
+//       const init = { tasksList: [], remindersList: [] };
+//       console.log("Initializing session:", init);
+//       return init;
+//     },
+//     storage,
+//   }),
+// );
+
+// Free storage
 
 // bot.use(
 //   session({
@@ -70,6 +88,8 @@ restoreScheduledJobs(bot, storage);
 //     storage: freeStorage<SessionData>(bot.token),
 //   })
 // );
+
+restoreScheduledJobs(bot, storage);
 
 bot.use(conversations());
 
