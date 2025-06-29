@@ -1,55 +1,44 @@
-import "@std/dotenv/load";
-
 // GrammY imports
 import { Bot, session } from "https://deno.land/x/grammy@v1.36.3/mod.ts";
 // import { freeStorage } from "https://deno.land/x/grammy_storages@v2.4.2/free/src/mod.ts";
 import { FileAdapter } from "https://deno.land/x/grammy_storages/file/src/mod.ts";
 import {
-  type Conversation,
-  type ConversationFlavor,
   conversations,
   createConversation,
 } from "https://deno.land/x/grammy_conversations@v2.0.1/mod.ts";
 
-// Database import
-import { SessionData } from "./src/db/freeStorage.ts";
-import { MySessionContext } from "./src/db/freeStorage.ts";
+// Core imports
+import { config } from "./src/core/config.ts";
+import { MyContext, SessionData } from "./src/core/types.ts";
 
 // Menus import
-import { mainMenu } from "./src/menus/mainMenu.ts";
+import { mainMenu } from "./src/_legacy/menus/mainMenu.ts";
 
 // Handlers import
-import { addTaskHandler } from "./src/features/tasks/taskAddHandler.ts";
-import { tasksHandler } from "./src/features/tasks/taskHandler.ts";
-import { deleteTaskHandler } from "./src/features/tasks/taskDeleteHandler.ts";
-import { doneTaskHandler } from "./src/features/tasks/taskDoneHandler.ts";
+import { addTaskHandler } from "./src/_legacy/features/tasks/taskAddHandler.ts";
+import { tasksHandler } from "./src/_legacy/features/tasks/taskHandler.ts";
+import { deleteTaskHandler } from "./src/_legacy/features/tasks/taskDeleteHandler.ts";
+import { doneTaskHandler } from "./src/_legacy/features/tasks/taskDoneHandler.ts";
 
-import { addReminderHandler } from "./src/features/reminders/reminderAddHandler.ts";
-import { remindersHandler } from "./src/features/reminders/reminderHandler.ts";
-import { deleteReminderHandler } from "./src/features/reminders/reminderDeleteHandler.ts";
+import { addReminderHandler } from "./src/_legacy/features/reminders/reminderAddHandler.ts";
+import { remindersHandler } from "./src/_legacy/features/reminders/reminderHandler.ts";
+import { deleteReminderHandler } from "./src/_legacy/features/reminders/reminderDeleteHandler.ts";
 
 // Conversations import
-import { addTaskConversation } from "./src/features/tasks/taskAddConversation.ts";
-import { deleteTaskConversation } from "./src/features/tasks/taskDeleteConversation.ts";
-import { doneTaskConversation } from "./src/features/tasks/taskDoneConversation.ts";
+import { addTaskConversation } from "./src/_legacy/features/tasks/taskAddConversation.ts";
+import { deleteTaskConversation } from "./src/_legacy/features/tasks/taskDeleteConversation.ts";
+import { doneTaskConversation } from "./src/_legacy/features/tasks/taskDoneConversation.ts";
 
-import { addReminderConversation } from "./src/features/reminders/reminderAddConversation.ts";
-import { deleteReminderConversation } from "./src/features/reminders/reminderDeleteConversation.ts";
+import { addReminderConversation } from "./src/_legacy/features/reminders/reminderAddConversation.ts";
+import { deleteReminderConversation } from "./src/_legacy/features/reminders/reminderDeleteConversation.ts";
 
 // Testing import
-import { clearRemindersList } from "./src/test/clearRemindersList.ts";
-import { clearTasksList } from "./src/test/clearTasksList.ts";
-import { restoreScheduledJobs } from "./src/test/restoreJobs.ts";
-
-export type MyContext = ConversationFlavor<MySessionContext>;
-export type MyConversation = Conversation<MyContext>;
+import { clearRemindersList } from "./src/_legacy/test/clearRemindersList.ts";
+import { clearTasksList } from "./src/_legacy/test/clearTasksList.ts";
+import { restoreScheduledJobs } from "./src/_legacy/test/restoreJobs.ts";
 
 // Create an instance of the `Bot` class and pass your bot token to it.
-const BOT_API_KEY = Deno.env.get("BOT_API_KEY");
-if (!BOT_API_KEY) {
-  throw new Error("Missing required environment variable: BOT_API_KEY");
-}
-export const bot = new Bot<MyContext>(BOT_API_KEY);
+export const bot = new Bot<MyContext>(config.BOT_API_KEY);
 
 // You can now register listeners on your bot object `bot`.
 // grammY will call the listeners when users send messages to your bot.

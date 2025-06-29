@@ -1,0 +1,19 @@
+import { MySessionContext } from "../../../core/types.ts";
+
+export function tasksHandler(ctx: MySessionContext) {
+  let list = ctx.session.tasksList;
+  if (!list) {
+    list = [];
+  }
+  if (list.length === 0) {
+    return ctx.reply("No tasks in the list");
+  }
+  const tasks = list
+    .map((task, index) => {
+      const mark = task.taskIsDone ? "✅" : "❌";
+      const status = task.taskIsDone ? "(done)" : "(undone)";
+      return `${mark} ${index + 1}. ${task.taskString} ${status}`;
+    })
+    .join("\n");
+  ctx.reply(tasks);
+}
