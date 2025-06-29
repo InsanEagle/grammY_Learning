@@ -8,11 +8,6 @@ import {
 } from "https://deno.land/x/grammy_conversations@v2.0.1/mod.ts";
 import * as schedule from "node-schedule";
 
-interface Task {
-  taskString: string;
-  taskIsDone: boolean;
-}
-
 interface Reminder {
   reminderString: string;
   reminderTime: Date;
@@ -29,7 +24,6 @@ interface ScheduledJob {
 
 // Define the session structure.
 export interface SessionData {
-  tasksList: Array<Task>;
   remindersList: Array<Reminder>;
 }
 

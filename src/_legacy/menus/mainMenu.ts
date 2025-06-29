@@ -2,7 +2,7 @@ import { Menu } from "https://deno.land/x/grammy_menu@v1.3.0/mod.ts";
 
 import { MyContext } from "../../core/types.ts";
 
-import { tasksMenu } from "./tasksMenu.ts";
+// import { tasksMenu } from "./tasksMenu.ts";
 import { remindersMenu } from "./remindersMenu.ts";
 import { currenciesMenu } from "./currenciesMenu.ts";
 import { weatherMenu } from "./weatherMenu.ts";
@@ -33,7 +33,7 @@ export const mainMenu = new Menu<MyContext>("root-menu")
   .submenu("Settings", "settings-menu");
 
 // Register submenus at mainMenu
-mainMenu.register(tasksMenu);
+// mainMenu.register(tasksMenu);
 mainMenu.register(remindersMenu);
 mainMenu.register(currenciesMenu);
 mainMenu.register(weatherMenu);

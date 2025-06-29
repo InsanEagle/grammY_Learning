@@ -1,5 +1,5 @@
-import { SessionData } from "../../core/types.ts";
+// import { SessionData } from "../../core/types.ts";
 
-export function clearTasksList(session: SessionData) {
-  session.tasksList = [];
-}
+// export function clearTasksList(session: SessionData) {
+//   session.tasksList = [];
+// }

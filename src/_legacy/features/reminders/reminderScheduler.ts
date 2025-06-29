@@ -1,7 +1,7 @@
 import * as schedule from "node-schedule";
 
 import { Bot } from "https://deno.land/x/grammy@v1.36.3/mod.ts";
-import { storage } from "../../../../bot.ts";
+import { storage } from "../../../core/database.ts";
 import { jobStore, MyContext, SessionData } from "../../../core/types.ts";
 
 // export function createScheduleReminder(

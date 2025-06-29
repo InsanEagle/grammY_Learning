@@ -1,3 +1,17 @@
-const kv = await Deno.openKv();
+import { DenoKVAdapter } from "https://deno.land/x/grammy_storages/denokv/src/mod.ts";
+// import { freeStorage } from "https://deno.land/x/grammy_storages@v2.4.2/free/src/mod.ts";
+// import { FileAdapter } from "https://deno.land/x/grammy_storages/file/src/mod.ts";
 
-export default kv;
+import { SessionData } from "./types.ts";
+
+// Deno.kv storage
+export const kv = await Deno.openKv("./sessions/kv.db");
+export const storage = new DenoKVAdapter<SessionData>(kv);
+
+// File storage
+// export const storage = new FileAdapter<SessionData>({
+//   dirName: "sessions",
+// });
+
+// Free storage
+// export const storage = new freeStorage<SessionData>(bot.token);
