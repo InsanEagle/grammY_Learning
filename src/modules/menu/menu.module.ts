@@ -1,14 +1,5 @@
 import { Menu } from "https://deno.land/x/grammy_menu@v1.3.0/mod.ts";
-
 import { MyContext } from "../../core/types.ts";
-
-// import { tasksMenu } from "./tasksMenu.ts";
-import { remindersMenu } from "./remindersMenu.ts";
-import { currenciesMenu } from "./currenciesMenu.ts";
-import { weatherMenu } from "./weatherMenu.ts";
-import { translateMenu } from "./translateMenu.ts";
-import { quoteMenu } from "./quoteMenu.ts";
-import { settingsMenu } from "./settingsMenu.ts";
 
 // ["Help", "Tasks"],
 // ["Remind", "Currency"],
@@ -31,12 +22,3 @@ export const mainMenu = new Menu<MyContext>("root-menu")
   .row()
   .text("Random", (ctx) => ctx.reply("You clicked on Random!"))
   .submenu("Settings", "settings-menu");
-
-// Register submenus at mainMenu
-// mainMenu.register(tasksMenu);
-mainMenu.register(remindersMenu);
-mainMenu.register(currenciesMenu);
-mainMenu.register(weatherMenu);
-mainMenu.register(translateMenu);
-mainMenu.register(quoteMenu);
-mainMenu.register(settingsMenu);

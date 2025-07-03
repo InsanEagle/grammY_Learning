@@ -8,7 +8,7 @@ import { createTaskConversations } from "./tasks.conversations.ts";
 import { createTaskHandlers } from "./tasks.handlers.ts";
 import { createTasksMenu } from "./tasks.menu.ts";
 
-import { mainMenu } from "../../_legacy/menus/mainMenu.ts";
+import { mainMenu } from "../menu/menu.module.ts";
 
 export const tasksModule = (bot: Bot<MyContext>) => {
   const taskRepository = new TaskRepository();
