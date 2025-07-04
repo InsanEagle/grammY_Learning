@@ -1,6 +1,5 @@
 .env
 node_modules
 sessions
-plan_google.md
 test.kv.db
-test.kv.db
+coverage

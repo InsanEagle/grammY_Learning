@@ -1,4 +1,4 @@
-import "@std/dotenv/load";
+import "jsr:@std/dotenv/load";
 
 const BOT_API_KEY = Deno.env.get("BOT_API_KEY");
 if (!BOT_API_KEY) {
