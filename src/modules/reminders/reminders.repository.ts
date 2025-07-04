@@ -16,6 +16,11 @@ export class ReminderRepository {
       { timezone: "UTC +3" },
       { forwardDate: true },
     );
+
+    if (!reminderDate) {
+      throw new Error(`Could not parse date from: "${reminderString}"`);
+    }
+
     const reminderToDateString = reminderDate.toLocaleString("ru-RU", {
       year: "numeric",
       month: "long",
