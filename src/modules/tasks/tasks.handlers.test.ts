@@ -51,12 +51,15 @@ Deno.test("TaskHandlers - tasksHandler", async (t) => {
   const handlers = createTaskHandlers(taskService);
   const ctx = createMockContext();
 
-  await t.step("should reply with 'No tasks in the list' if no tasks exist", async () => {
-    await handlers.tasksHandler(ctx);
-    assertSpyCall(ctx.reply as Spy<any>, 0, {
-      args: ["No tasks in the list"],
-    });
-  });
+  await t.step(
+    "should reply with 'No tasks in the list' if no tasks exist",
+    async () => {
+      await handlers.tasksHandler(ctx);
+      assertSpyCall(ctx.reply as Spy<any>, 0, {
+        args: ["No tasks in the list"],
+      });
+    },
+  );
 
   await t.step("should reply with a list of tasks if tasks exist", async () => {
     await taskService.addTask(ctx.from!.id, "Test Task 1");

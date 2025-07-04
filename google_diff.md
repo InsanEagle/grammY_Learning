@@ -4,10 +4,12 @@ b/.github/workflows/ci.yml @@ -0,0 +1,31 @@ +name: Deno CI + +on:
 
 - push:
 - branches:
-- - main
+-
+  - main
 - pull_request:
 - branches:
-- - main
+-
+  - main
 -
 
 +jobs:
@@ -16,19 +18,24 @@ b/.github/workflows/ci.yml @@ -0,0 +1,31 @@ +name: Deno CI + +on:
 - runs-on: ubuntu-latest
 -
 - steps:
-- - name: Checkout
+-
+  - name: Checkout
 - uses: actions/checkout@v4
 -
-- - name: Setup Deno
+-
+  - name: Setup Deno
 - uses: denoland/setup-deno@v1
 - with:
 - deno-version: v1.x
 -
-- - name: Check formatting
+-
+  - name: Check formatting
 - run: deno fmt --check
 -
-- - name: Lint code
+-
+  - name: Lint code
 - run: deno lint
 -
-- - name: Run tests
+-
+  - name: Run tests
 - run: deno task test

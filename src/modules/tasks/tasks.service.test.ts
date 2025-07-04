@@ -37,9 +37,7 @@ class MockTaskRepository implements Partial<TaskRepository> {
     taskId: string,
     data: Partial<Pick<Task, "isDone" | "text">>,
   ): Promise<Task | null> {
-    const task = this.tasks.find((t) =>
-      t.userId === userId && t.id === taskId
-    );
+    const task = this.tasks.find((t) => t.userId === userId && t.id === taskId);
     if (task) {
       Object.assign(task, data);
       return Promise.resolve(task);

@@ -40,8 +40,15 @@ export class ReminderRepository {
     await kv.atomic()
       .set([REMINDERS_KEY, reminderUserId, reminder.reminderId], reminder)
       .set(
-        ["reminders_by_time", reminder.reminderDate.toISOString(), reminder.reminderId],
-        { reminderUserId: reminder.reminderUserId, reminderId: reminder.reminderId },
+        [
+          "reminders_by_time",
+          reminder.reminderDate.toISOString(),
+          reminder.reminderId,
+        ],
+        {
+          reminderUserId: reminder.reminderUserId,
+          reminderId: reminder.reminderId,
+        },
       )
       .commit();
 
@@ -77,7 +84,11 @@ export class ReminderRepository {
 
     await kv.atomic()
       .delete([REMINDERS_KEY, reminderUserId, reminderId])
-      .delete(["reminders_by_time", reminder.reminderDate.toISOString(), reminderId])
+      .delete([
+        "reminders_by_time",
+        reminder.reminderDate.toISOString(),
+        reminderId,
+      ])
       .commit();
 
     return true;

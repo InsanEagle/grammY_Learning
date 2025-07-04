@@ -1,7 +1,7 @@
 import {
+  assert,
   assertEquals,
   assertExists,
-  assert,
 } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { ReminderRepository } from "./reminders.repository.ts";
 import { kv } from "../../core/database.ts";

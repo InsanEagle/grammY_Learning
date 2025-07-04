@@ -2,7 +2,6 @@ import {
   assertSpyCall,
   Spy,
 } from "https://deno.land/std@0.224.0/testing/mock.ts";
-import { assert } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { clearDb, createMockContext } from "../../../test/helpers.ts";
 import { createReminderHandlers } from "./reminders.handlers.ts";
 import { ReminderService } from "./reminders.service.ts";
@@ -58,12 +57,26 @@ Deno.test("ReminderHandlers - remindersHandler", async (t) => {
         "Test Reminder 2 через 2 дня",
       );
       await handlers.remindersHandler(ctx);
-      const replySpy = ctx.reply as Spy<any>;
-      await handlers.remindersHandler(ctx);
-      const actualReply = replySpy.calls[1].args[0];
-
-      assert(actualReply.includes("1. Test Reminder 1 завтра"));
-      assert(actualReply.includes("2. Test Reminder 2 через 2 дня"));
+      const expectedReply = `1. Test Reminder 1 завтра (${
+        new Date().toLocaleString("ru-RU", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+          hour: "numeric",
+          minute: "numeric",
+        })
+      })\n2. Test Reminder 2 через 2 дня (${
+        new Date().toLocaleString("ru-RU", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+          hour: "numeric",
+          minute: "numeric",
+        })
+      })`;
+      assertSpyCall(ctx.reply as Spy<any>, 1, {
+        args: [expectedReply],
+      });
     },
   );
 });

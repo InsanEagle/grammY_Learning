@@ -80,8 +80,7 @@ export const createReminderConversations = (
 
     const listString = reminders
       .map(
-        (r, i) =>
-          `${i + 1}. ${r.reminderString} (${r.reminderToDateString})`,
+        (r, i) => `${i + 1}. ${r.reminderString} (${r.reminderToDateString})`,
       )
       .join("\n");
 
