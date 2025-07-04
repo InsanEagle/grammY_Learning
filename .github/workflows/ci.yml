@@ -21,6 +21,9 @@ jobs:
         with:
           deno-version: v2.x
 
+      - name: Create sessions directory for KV store
+        run: mkdir -p sessions
+
       - name: Check formatting
         run: deno fmt --check
 

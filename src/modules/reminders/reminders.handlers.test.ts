@@ -1,3 +1,5 @@
+import * as chrono from "npm:chrono-node/ru";
+
 import {
   assertSpyCall,
   Spy,
@@ -57,23 +59,29 @@ Deno.test("ReminderHandlers - remindersHandler", async (t) => {
         "Test Reminder 2 через 2 дня",
       );
       await handlers.remindersHandler(ctx);
+
+      const options: Intl.DateTimeFormatOptions = {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "numeric",
+        minute: "numeric",
+      };
+
+      // Use chrono-node to get the correct expected dates
+      const expectedDate1 = chrono.parseDate("завтра", { timezone: "UTC +3" }, {
+        forwardDate: true,
+      });
+      const expectedDate2 = chrono.parseDate("через 2 дня", {
+        timezone: "UTC +3",
+      }, { forwardDate: true });
+
       const expectedReply = `1. Test Reminder 1 завтра (${
-        new Date().toLocaleString("ru-RU", {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-          hour: "numeric",
-          minute: "numeric",
-        })
+        expectedDate1!.toLocaleString("ru-RU", options)
       })\n2. Test Reminder 2 через 2 дня (${
-        new Date().toLocaleString("ru-RU", {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-          hour: "numeric",
-          minute: "numeric",
-        })
+        expectedDate2!.toLocaleString("ru-RU", options)
       })`;
+
       assertSpyCall(ctx.reply as Spy<any>, 1, {
         args: [expectedReply],
       });
