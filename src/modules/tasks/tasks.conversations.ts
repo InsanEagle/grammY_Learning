@@ -28,7 +28,6 @@ export const createTaskConversations = (taskService: TaskService) => {
       const task = await conversation.external(async () => {
         return await taskService.addTask(fromId, taskText);
       });
-      // const task = await taskService.addTask(ctx.from.id, taskText);
       await ctx.reply(`Task: ${task.text} successfully added`);
     }
   }

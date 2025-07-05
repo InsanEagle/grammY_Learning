@@ -9,7 +9,7 @@ import {
 } from "https://deno.land/x/grammy_conversations@v2.0.1/mod.ts";
 import { spy } from "https://deno.land/std@0.224.0/testing/mock.ts";
 import { UserFromGetMe } from "https://deno.land/x/grammy@v1.36.3/types.ts";
-import { kv } from "../src/core/database.ts";
+import { initializeDb, kv } from "../src/core/database.ts";
 import { ConversationControls } from "https://deno.land/x/grammy_conversations@v2.0.1/plugin.ts";
 
 export type MyContext = Context & ConversationFlavor<Context>;
@@ -24,8 +24,8 @@ export const createMockContext = (messageText: string = "") => {
     can_join_groups: true,
     can_read_all_group_messages: true,
     supports_inline_queries: false,
-    can_connect_to_business: false, // Added missing property
-    has_main_web_app: false, // Added missing property
+    can_connect_to_business: false,
+    has_main_web_app: false,
   };
 
   const ctx = new Context(
@@ -40,21 +40,18 @@ export const createMockContext = (messageText: string = "") => {
       },
     },
     {} as Api<RawApi>,
-    me, // Mock API
+    me,
   ) as MyContext;
 
   ctx.reply = spy(() => Promise.resolve() as any);
 
   function mockActive(...args: [string?]): Record<string, number> | number {
     if (args.length === 0) {
-      // Corresponds to `active()` call
       return {};
     }
-    // Corresponds to `active(name)` call
     return 0;
   }
 
-  // FIX 2.2: Assemble the mock object and use `as unknown as ...` to force the type.
   ctx.conversation = {
     enter: spy((_name: string) => Promise.resolve()),
     exit: spy(() => Promise.resolve()),
@@ -81,9 +78,37 @@ export const createMockConversation = () => {
   return conversation;
 };
 
-export async function clearDb() {
-  const iter = kv.list({ prefix: [] });
-  for await (const entry of iter) {
-    await kv.delete(entry.key);
-  }
+const TEST_DB_PATH = "./test.kv.db";
+
+/**
+ * Sets up an isolated Deno KV database for integration tests.
+ * It initializes the DB, provides a function to clear it between steps,
+ * and returns a function to clean up (close and delete) the DB file afterward.
+ */
+export async function setupTestDb() {
+  await initializeDb(TEST_DB_PATH);
+
+  const clear = async () => {
+    const iter = kv.list({ prefix: [] });
+    for await (const entry of iter) {
+      await kv.delete(entry.key);
+    }
+  };
+
+  const teardown = () => {
+    kv.close();
+    // Deno.remove is unstable, but necessary for cleanup.
+    // Ensure --allow-write is enabled for tests.
+    try {
+      Deno.removeSync(TEST_DB_PATH);
+      Deno.removeSync(`${TEST_DB_PATH}-shm`);
+      Deno.removeSync(`${TEST_DB_PATH}-wal`);
+    } catch (error) {
+      if (!(error instanceof Deno.errors.NotFound)) {
+        console.error("Error during test DB cleanup:", error);
+      }
+    }
+  };
+
+  return { clear, teardown };
 }

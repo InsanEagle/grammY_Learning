@@ -3,7 +3,7 @@ import {
   Spy,
 } from "https://deno.land/std@0.224.0/testing/mock.ts";
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { clearDb, createMockContext } from "../../../test/helpers.ts";
+import { createMockContext, setupTestDb } from "../../../test/helpers.ts";
 import { createTaskHandlers } from "./tasks.handlers.ts";
 import { TaskService } from "./tasks.service.ts";
 import { TaskRepository } from "./tasks.repository.ts";
@@ -45,46 +45,67 @@ Deno.test("TaskHandlers - doneTaskHandler", async () => {
 });
 
 Deno.test("TaskHandlers - tasksHandler", async (t) => {
-  await clearDb();
-  const taskRepository = new TaskRepository();
-  const taskService = new TaskService(taskRepository);
-  const handlers = createTaskHandlers(taskService);
-  const ctx = createMockContext();
+  const { clear, teardown } = await setupTestDb();
+  try {
+    const taskRepository = new TaskRepository();
+    const taskService = new TaskService(taskRepository);
+    const handlers = createTaskHandlers(taskService);
+    const ctx = createMockContext();
 
-  await t.step(
-    "should reply with 'No tasks in the list' if no tasks exist",
-    async () => {
-      await handlers.tasksHandler(ctx);
-      assertSpyCall(ctx.reply as Spy<any>, 0, {
-        args: ["No tasks in the list"],
-      });
-    },
-  );
+    await t.step(
+      "should reply with 'No tasks in the list' if no tasks exist",
+      async () => {
+        await clear();
+        await handlers.tasksHandler(ctx);
+        assertSpyCall(ctx.reply as Spy<any>, 0, {
+          args: ["No tasks in the list"],
+        });
+      },
+    );
 
-  await t.step("should reply with a list of tasks if tasks exist", async () => {
-    await taskService.addTask(ctx.from!.id, "Test Task 1");
-    await taskService.addTask(ctx.from!.id, "Test Task 2");
-    await handlers.tasksHandler(ctx);
-    assertSpyCall(ctx.reply as Spy<any>, 1, {
-      args: ["❌ 1. Test Task 1 (undone)\n❌ 2. Test Task 2 (undone)"],
-    });
-  });
+    await t.step(
+      "should reply with a list of tasks if tasks exist",
+      async () => {
+        await clear();
+        await taskService.addTask(ctx.from!.id, "Test Task 1");
+        await taskService.addTask(ctx.from!.id, "Test Task 2");
+        await handlers.tasksHandler(ctx);
+        assertSpyCall(ctx.reply as Spy<any>, 1, {
+          args: ["❌ 1. Test Task 1 (undone)\n❌ 2. Test Task 2 (undone)"],
+        });
+      },
+    );
+  } finally {
+    teardown();
+  }
 });
 
-Deno.test("TaskHandlers - clearTasksHandler", async (t) => {
-  await clearDb();
-  const taskRepository = new TaskRepository();
-  const taskService = new TaskService(taskRepository);
-  const handlers = createTaskHandlers(taskService);
-  const ctx = createMockContext();
+Deno.test(
+  "TaskHandlers - clearTasksHandler",
+  { sanitizeResources: false, sanitizeOps: false },
+  async (t) => {
+    const { clear, teardown } = await setupTestDb();
+    try {
+      const taskRepository = new TaskRepository();
+      const taskService = new TaskService(taskRepository);
+      const handlers = createTaskHandlers(taskService);
+      const ctx = createMockContext();
 
-  await t.step("should clear tasks and reply with confirmation", async () => {
-    await taskService.addTask(ctx.from!.id, "Task to clear");
-    await handlers.clearTasksHandler(ctx);
-    assertSpyCall(ctx.reply as Spy<any>, 0, {
-      args: ["All tasks have been cleared!"],
-    });
-    const tasks = await taskService.getTasks(ctx.from!.id);
-    assertEquals(tasks.length, 0);
-  });
-});
+      await t.step(
+        "should clear tasks and reply with confirmation",
+        async () => {
+          await clear();
+          await taskService.addTask(ctx.from!.id, "Task to clear");
+          await handlers.clearTasksHandler(ctx);
+          assertSpyCall(ctx.reply as Spy<any>, 0, {
+            args: ["All tasks have been cleared!"],
+          });
+          const tasks = await taskService.getTasks(ctx.from!.id);
+          assertEquals(tasks.length, 0);
+        },
+      );
+    } finally {
+      teardown();
+    }
+  },
+);

@@ -4,16 +4,17 @@ import {
 } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { ReminderService } from "./reminders.service.ts";
 import { ReminderRepository } from "./reminders.repository.ts";
-import { __setKv, kv } from "../../core/database.ts";
+import { __setKv, initializeDb, kv } from "../../core/database.ts";
 import { MockKv } from "../../../test/mocks/kv.mock.ts";
 
 Deno.test(
   "ReminderService",
   { sanitizeResources: false, sanitizeOps: false },
   async (t) => {
-    const originalKv = kv; // 1. Store the original
+    await initializeDb("./test.service.db");
+    const originalKv = kv;
     const mockKv = new MockKv();
-    __setKv(mockKv as any); // 2. Directly assign the mock
+    __setKv(mockKv as any);
 
     try {
       const reminderRepository = new ReminderRepository();
@@ -70,7 +71,15 @@ Deno.test(
         assertEquals(mockKv.store.size, 2);
       });
     } finally {
-      __setKv(originalKv); // 3. Restore the original using the setter
+      __setKv(originalKv);
+      originalKv.close();
+      try {
+        Deno.removeSync("./test.service.db");
+        Deno.removeSync("./test.service.db-shm");
+        Deno.removeSync("./test.service.db-wal");
+      } catch (error) {
+        console.error(error);
+      }
     }
   },
 );

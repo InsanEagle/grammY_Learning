@@ -5,16 +5,18 @@ import {
 
 import { TaskService } from "./tasks.service.ts";
 import { TaskRepository } from "./tasks.repository.ts";
-import { __setKv, kv } from "../../core/database.ts";
+import { __setKv, initializeDb, kv } from "../../core/database.ts";
 import { MockKv } from "../../../test/mocks/kv.mock.ts";
 
 Deno.test(
   "TaskService",
   { sanitizeResources: false, sanitizeOps: false },
   async (t) => {
-    const originalKv = kv; // 1. Store the original
+    // Initialize a temporary, real DB instance just to have a valid object to swap.
+    await initializeDb("./test.service.db");
+    const originalKv = kv;
     const mockKv = new MockKv();
-    __setKv(mockKv as any); // 2. Directly assign the mock
+    __setKv(mockKv as any);
 
     try {
       const taskRepository = new TaskRepository();
@@ -70,7 +72,15 @@ Deno.test(
         assertEquals(mockKv.store.size, 0);
       });
     } finally {
-      __setKv(originalKv); // 3. Restore the original using the setter
+      __setKv(originalKv);
+      originalKv.close();
+      try {
+        Deno.removeSync("./test.service.db");
+        Deno.removeSync("./test.service.db-shm");
+        Deno.removeSync("./test.service.db-wal");
+      } catch (error) {
+        console.error(error);
+      }
     }
   },
 );
