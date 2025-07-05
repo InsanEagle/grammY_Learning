@@ -16,7 +16,7 @@ Deno.test(
     await initializeDb("./test.service.db");
     const originalKv = kv;
     const mockKv = new MockKv();
-    __setKv(mockKv as any);
+    __setKv(mockKv);
 
     try {
       const taskRepository = new TaskRepository();

@@ -16,7 +16,7 @@ Deno.test("ReminderHandlers - addReminderHandler", async () => {
 
   await handlers.addReminderHandler(ctx);
 
-  assertSpyCall(ctx.conversation.enter as Spy<any>, 0, {
+  assertSpyCall(ctx.conversation.enter as Spy<Promise<void>>, 0, {
     args: ["addReminderConversation"],
   });
 });
@@ -28,7 +28,7 @@ Deno.test("ReminderHandlers - deleteReminderHandler", async () => {
 
   await handlers.deleteReminderHandler(ctx);
 
-  assertSpyCall(ctx.conversation.enter as Spy<any>, 0, {
+  assertSpyCall(ctx.conversation.enter as Spy<Promise<void>>, 0, {
     args: ["deleteReminderConversation"],
   });
 });
@@ -49,7 +49,7 @@ Deno.test(
         async () => {
           await clear();
           await handlers.remindersHandler(ctx);
-          assertSpyCall(ctx.reply as Spy<any>, 0, {
+          assertSpyCall(ctx.reply as Spy<Promise<void>>, 0, {
             args: ["No reminders in the list"],
           });
         },
@@ -98,7 +98,7 @@ Deno.test(
             expectedDate2!.toLocaleString("ru-RU", options)
           })`;
 
-          assertSpyCall(ctx.reply as Spy<any>, 1, {
+          assertSpyCall(ctx.reply as Spy<Promise<void>>, 1, {
             args: [expectedReply],
           });
         },

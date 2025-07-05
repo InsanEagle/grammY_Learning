@@ -7,6 +7,7 @@ import { createMockContext, setupTestDb } from "../../../test/helpers.ts";
 import { createTaskHandlers } from "./tasks.handlers.ts";
 import { TaskService } from "./tasks.service.ts";
 import { TaskRepository } from "./tasks.repository.ts";
+import { Message } from "https://deno.land/x/grammy_types@v3.20.0/message.ts";
 
 Deno.test("TaskHandlers - addTaskHandler", async () => {
   const mockService = {} as unknown as TaskService;
@@ -15,9 +16,13 @@ Deno.test("TaskHandlers - addTaskHandler", async () => {
 
   await handlers.addTaskHandler(ctx);
 
-  assertSpyCall(ctx.conversation.enter as Spy<any>, 0, {
-    args: ["addTaskConversation"],
-  });
+  assertSpyCall(
+    ctx.conversation.enter as Spy<Promise<Message.TextMessage>>,
+    0,
+    {
+      args: ["addTaskConversation"],
+    },
+  );
 });
 
 Deno.test("TaskHandlers - deleteTaskHandler", async () => {
@@ -27,9 +32,13 @@ Deno.test("TaskHandlers - deleteTaskHandler", async () => {
 
   await handlers.deleteTaskHandler(ctx);
 
-  assertSpyCall(ctx.conversation.enter as Spy<any>, 0, {
-    args: ["deleteTaskConversation"],
-  });
+  assertSpyCall(
+    ctx.conversation.enter as Spy<Promise<Message.TextMessage>>,
+    0,
+    {
+      args: ["deleteTaskConversation"],
+    },
+  );
 });
 
 Deno.test("TaskHandlers - doneTaskHandler", async () => {
@@ -39,9 +48,13 @@ Deno.test("TaskHandlers - doneTaskHandler", async () => {
 
   await handlers.doneTaskHandler(ctx);
 
-  assertSpyCall(ctx.conversation.enter as Spy<any>, 0, {
-    args: ["doneTaskConversation"],
-  });
+  assertSpyCall(
+    ctx.conversation.enter as Spy<Promise<Message.TextMessage>>,
+    0,
+    {
+      args: ["doneTaskConversation"],
+    },
+  );
 });
 
 Deno.test("TaskHandlers - tasksHandler", async (t) => {
@@ -57,7 +70,7 @@ Deno.test("TaskHandlers - tasksHandler", async (t) => {
       async () => {
         await clear();
         await handlers.tasksHandler(ctx);
-        assertSpyCall(ctx.reply as Spy<any>, 0, {
+        assertSpyCall(ctx.reply as Spy<Promise<Message.TextMessage>>, 0, {
           args: ["No tasks in the list"],
         });
       },
@@ -70,7 +83,7 @@ Deno.test("TaskHandlers - tasksHandler", async (t) => {
         await taskService.addTask(ctx.from!.id, "Test Task 1");
         await taskService.addTask(ctx.from!.id, "Test Task 2");
         await handlers.tasksHandler(ctx);
-        assertSpyCall(ctx.reply as Spy<any>, 1, {
+        assertSpyCall(ctx.reply as Spy<Promise<Message.TextMessage>>, 1, {
           args: ["❌ 1. Test Task 1 (undone)\n❌ 2. Test Task 2 (undone)"],
         });
       },
@@ -97,7 +110,7 @@ Deno.test(
           await clear();
           await taskService.addTask(ctx.from!.id, "Task to clear");
           await handlers.clearTasksHandler(ctx);
-          assertSpyCall(ctx.reply as Spy<any>, 0, {
+          assertSpyCall(ctx.reply as Spy<Promise<Message.TextMessage>>, 0, {
             args: ["All tasks have been cleared!"],
           });
           const tasks = await taskService.getTasks(ctx.from!.id);

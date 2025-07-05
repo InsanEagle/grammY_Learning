@@ -11,6 +11,7 @@ import { spy } from "https://deno.land/std@0.224.0/testing/mock.ts";
 import { UserFromGetMe } from "https://deno.land/x/grammy@v1.36.3/types.ts";
 import { initializeDb, kv } from "../src/core/database.ts";
 import { ConversationControls } from "https://deno.land/x/grammy_conversations@v2.0.1/plugin.ts";
+import { Message } from "https://deno.land/x/grammy_types@v3.20.0/message.ts";
 
 export type MyContext = Context & ConversationFlavor<Context>;
 export type MyConversation = Conversation<MyContext>;
@@ -43,7 +44,7 @@ export const createMockContext = (messageText: string = "") => {
     me,
   ) as MyContext;
 
-  ctx.reply = spy(() => Promise.resolve() as any);
+  ctx.reply = spy(() => Promise.resolve({} as Message.TextMessage));
 
   function mockActive(...args: [string?]): Record<string, number> | number {
     if (args.length === 0) {
@@ -58,21 +59,21 @@ export const createMockContext = (messageText: string = "") => {
     exitAll: spy(() => Promise.resolve()),
     exitOne: spy(() => Promise.resolve()),
     active: spy(mockActive),
-    wait: spy(() => Promise.resolve({} as any)),
-    waitFor: spy(() => Promise.resolve({} as any)),
-    waitUntil: spy(() => Promise.resolve({} as any)),
-    external: spy((cb: () => any) => cb()),
-  } as unknown as ConversationControls;
+    wait: spy(() => Promise.resolve({} as unknown)),
+    waitFor: spy(() => Promise.resolve({} as unknown)),
+    waitUntil: spy(() => Promise.resolve({} as unknown)),
+    external: spy((cb: () => unknown) => cb()),
+  } as ConversationControls;
 
   return ctx;
 };
 
 export const createMockConversation = () => {
   const conversation = {
-    wait: spy(() => Promise.resolve() as any),
-    waitFor: spy(() => Promise.resolve() as any),
-    waitUntil: spy(() => Promise.resolve() as any),
-    external: spy((cb: any) => cb()),
+    wait: spy(() => Promise.resolve() as unknown),
+    waitFor: spy(() => Promise.resolve() as unknown),
+    waitUntil: spy(() => Promise.resolve() as unknown),
+    external: spy((cb: () => unknown) => Promise.resolve(cb())),
   } as unknown as MyConversation;
 
   return conversation;

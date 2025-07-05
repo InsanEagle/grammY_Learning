@@ -16,9 +16,9 @@ function keyToString(key: Deno.KvKey): string {
 class MockAtomic implements Deno.AtomicOperation {
   private operations: (() => void)[] = [];
 
-  constructor(private store: Map<string, any>) {}
+  constructor(private store: Map<string, unknown>) {}
 
-  set(key: Deno.KvKey, value: any): this {
+  set(key: Deno.KvKey, value: unknown): this {
     this.operations.push(() => {
       this.store.set(keyToString(key), value);
     });
@@ -86,8 +86,8 @@ class MockAtomic implements Deno.AtomicOperation {
   }
 }
 
-export class MockKv implements Partial<Deno.Kv> {
-  public store = new Map<string, any>();
+export class MockKv implements Deno.Kv {
+  public store = new Map<string, unknown>();
 
   get<T = unknown>(
     key: Deno.KvKey,
@@ -103,7 +103,7 @@ export class MockKv implements Partial<Deno.Kv> {
     }
     return Promise.resolve({
       key,
-      value,
+      value: value as T,
       versionstamp: "mock-versionstamp",
     });
   }
@@ -138,7 +138,7 @@ export class MockKv implements Partial<Deno.Kv> {
           // This key reconstruction is imperfect but sufficient for most tests.
           entries.push({
             key: [keyStr],
-            value,
+            value: value as T,
             versionstamp: "mock-versionstamp",
           });
         }
@@ -157,7 +157,7 @@ export class MockKv implements Partial<Deno.Kv> {
         if (index < entries.length) {
           return Promise.resolve({ done: false, value: entries[index++] });
         }
-        return Promise.resolve({ done: true, value: undefined as any });
+        return Promise.resolve({ done: true, value: undefined });
       },
       get cursor(): string {
         // Cursors are not implemented in this simple mock.
@@ -174,5 +174,60 @@ export class MockKv implements Partial<Deno.Kv> {
   // Add stubs for other Deno.Kv methods if needed by tests
   close(): void {
     this.store.clear();
+  }
+
+  [Symbol.dispose](): void {
+    this.close();
+  }
+
+  [Symbol.asyncDispose](): Promise<void> {
+    return Promise.resolve(this.close());
+  }
+
+  private readonly commitVersionstampSymbol = Symbol("commitVersionstamp");
+  commitVersionstamp(): symbol {
+    return this.commitVersionstampSymbol;
+  }
+
+  enqueue(): Promise<Deno.KvCommitResult> {
+    return Promise.resolve({
+      ok: true,
+      versionstamp: `mock-versionstamp-${Date.now()}`,
+    });
+  }
+
+  listenQueue(): Promise<void> {
+    return Promise.resolve();
+  }
+
+  getMany<T extends readonly unknown[]>(
+    keys: readonly [...{ [K in keyof T]: Deno.KvKey }],
+    _options?: { consistency?: Deno.KvConsistencyLevel },
+  ): Promise<{ [K in keyof T]: Deno.KvEntryMaybe<T[K]> }> {
+    return Promise.all(
+      keys.map((key) => this.get<T[keyof T]>(key)),
+    ) as Promise<{ [K in keyof T]: Deno.KvEntryMaybe<T[K]> }>;
+  }
+
+  watch<T extends readonly unknown[]>(
+    keys: readonly [...{ [K in keyof T]: Deno.KvKey }],
+    _options?: { raw?: boolean },
+  ): ReadableStream<{ [K in keyof T]: Deno.KvEntryMaybe<T[K]> }> {
+    // Create initial entries
+    const initialEntries = keys.map((key) => {
+      const value = this.store.get(keyToString(key));
+      return {
+        key,
+        value: value as T[keyof T] ?? null,
+        versionstamp: value !== undefined ? "mock-versionstamp" : null,
+      };
+    }) as { [K in keyof T]: Deno.KvEntryMaybe<T[K]> };
+
+    return new ReadableStream({
+      start(controller) {
+        controller.enqueue(initialEntries);
+        controller.close();
+      },
+    });
   }
 }

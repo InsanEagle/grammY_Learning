@@ -30,11 +30,11 @@ export async function createBot() {
   // Initialize modules
   tasksModule(bot);
   remindersModule(bot);
-  currenciesModule(bot);
-  quoteModule(bot);
-  settingsModule(bot);
-  weatherModule(bot);
-  translateModule(bot);
+  currenciesModule();
+  quoteModule();
+  settingsModule();
+  weatherModule();
+  translateModule();
 
   // Make it interactive.
   bot.use(mainMenu);

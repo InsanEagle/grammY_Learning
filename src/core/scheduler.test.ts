@@ -6,6 +6,7 @@ import { Bot } from "https://deno.land/x/grammy@v1.36.3/mod.ts";
 import { MyContext } from "./types.ts";
 import { kv } from "./database.ts";
 import { setupTestDb } from "../../test/helpers.ts";
+import { Message } from "https://deno.land/x/grammy_types@v3.20.0/message.ts";
 
 Deno.test(
   "SchedulerService - checkAndSendReminders",
@@ -38,13 +39,19 @@ Deno.test(
         // @ts-ignore: Accessing private method for testing
         await scheduler.checkAndSendReminders();
 
-        assertEquals((mockBot.api.sendMessage as Spy<any>).calls.length, 1);
         assertEquals(
-          (mockBot.api.sendMessage as Spy<any>).calls[0].args[0],
+          (mockBot.api.sendMessage as Spy<Promise<Message.TextMessage>>).calls
+            .length,
+          1,
+        );
+        assertEquals(
+          (mockBot.api.sendMessage as Spy<Promise<Message.TextMessage>>)
+            .calls[0].args[0],
           userId,
         );
         assertEquals(
-          (mockBot.api.sendMessage as Spy<any>).calls[0].args[1],
+          (mockBot.api.sendMessage as Spy<Promise<Message.TextMessage>>)
+            .calls[0].args[1],
           `🔔 Reminder: ${reminderString}`,
         );
 
