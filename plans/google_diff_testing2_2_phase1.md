@@ -126,7 +126,8 @@ Partial<ReminderRepository> {
 *
 * await t.step("addReminder", async () => {
 * mockKv.store.clear();
-* const reminder = await service.addReminder(userId, "Test Reminder завтра в 10");
+* const reminder = await service.addReminder(userId, "Test Reminder завтра в
+  10");
 * assertEquals(reminder.reminderString, "Test Reminder завтра в 10");
 * assertEquals(reminder.reminderUserId, userId);
 * assertEquals(mockKv.store.size, 2); // reminders_by_user and reminders_by_time
@@ -160,8 +161,10 @@ Partial<ReminderRepository> {
 * await service.clearReminders(userId);
 * const reminders = await service.getReminders(userId);
 * assertEquals(reminders.length, 0);
-* // Note: clearReminders only deletes from reminders_by_user, not reminders_by_time
-* // This is a potential bug in the source code, but the test reflects current behavior.
+* // Note: clearReminders only deletes from reminders_by_user, not
+  reminders_by_time
+* // This is a potential bug in the source code, but the test reflects current
+  behavior.
 * assertEquals(mockKv.store.size, 2);
 * });
 *
@@ -422,7 +425,8 @@ Partial<TaskRepository> {
 - const prefix = keyToString(selector.prefix);
 - for (const [keyStr, value] of this.store.entries()) {
 - if (keyStr.startsWith(prefix)) {
-- // The key reconstruction is not perfect, but repositories only use `entry.value`.
+- // The key reconstruction is not perfect, but repositories only use
+  `entry.value`.
 - yield { key: [keyStr], value, versionstamp: "mock-versionstamp" };
 - }
 - }

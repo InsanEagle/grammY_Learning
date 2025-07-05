@@ -98,7 +98,7 @@ graph TD
      and a GitHub Action like `codecov/codecov-action` to process and upload it.
    - **Why use it:** This makes test coverage a visible, first-class metric in
      your development process, helping you track progress against the goal of
-     >80% coverage.
+     > 80% coverage.
 
 ### 3.3. Detailed Action Plan / Phases
 

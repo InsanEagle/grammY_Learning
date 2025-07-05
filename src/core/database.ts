@@ -3,8 +3,13 @@ import { DenoKVAdapter } from "https://deno.land/x/grammy_storages/denokv/src/mo
 // import { FileAdapter } from "https://deno.land/x/grammy_storages/file/src/mod.ts";
 
 // Deno.kv storage
-export const kv = await Deno.openKv("./sessions/kv.db");
+export let kv = await Deno.openKv("./sessions/kv.db");
 export const storage = new DenoKVAdapter(kv);
+
+// Export a setter for testing purposes
+export function __setKv(newKv: Deno.Kv) {
+  kv = newKv;
+}
 
 // File storage
 // export const storage = new FileAdapter<SessionData>({

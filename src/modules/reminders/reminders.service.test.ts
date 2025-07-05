@@ -4,94 +4,73 @@ import {
 } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { ReminderService } from "./reminders.service.ts";
 import { ReminderRepository } from "./reminders.repository.ts";
-import { Reminder } from "./reminders.types.ts";
+import { __setKv, kv } from "../../core/database.ts";
+import { MockKv } from "../../../test/mocks/kv.mock.ts";
 
-// Mock ReminderRepository
-class MockReminderRepository implements Partial<ReminderRepository> {
-  private reminders: Reminder[] = [];
+Deno.test(
+  "ReminderService",
+  { sanitizeResources: false, sanitizeOps: false },
+  async (t) => {
+    const originalKv = kv; // 1. Store the original
+    const mockKv = new MockKv();
+    __setKv(mockKv as any); // 2. Directly assign the mock
 
-  create(userId: number, text: string): Promise<Reminder> {
-    const reminder: Reminder = {
-      reminderId: crypto.randomUUID(),
-      reminderUserId: userId,
-      reminderString: text,
-      reminderDate: new Date(),
-      reminderToDateString: new Date().toISOString(),
-      createdAt: new Date(),
-    };
-    this.reminders.push(reminder);
-    return Promise.resolve(reminder);
-  }
+    try {
+      const reminderRepository = new ReminderRepository();
+      const service = new ReminderService(reminderRepository);
+      const userId = 1;
 
-  findByUser(userId: number): Promise<Reminder[]> {
-    return Promise.resolve(
-      this.reminders.filter((r) => r.reminderUserId === userId),
-    );
-  }
+      await t.step("addReminder", async () => {
+        mockKv.store.clear();
+        const reminder = await service.addReminder(
+          userId,
+          "Test Reminder завтра в 10",
+        );
+        assertEquals(reminder.reminderString, "Test Reminder завтра в 10");
+        assertEquals(reminder.reminderUserId, userId);
+        assertEquals(mockKv.store.size, 2); // reminders_by_user and reminders_by_time
+      });
 
-  findById(userId: number, reminderId: string): Promise<Reminder | null> {
-    return Promise.resolve(
-      this.reminders.find((r) =>
-        r.reminderUserId === userId && r.reminderId === reminderId
-      ) || null,
-    );
-  }
+      await t.step("getRemindersList", async () => {
+        mockKv.store.clear();
+        await service.addReminder(userId, "Reminder 1 завтра в 11");
+        await service.addReminder(userId, "Reminder 2 послезавтра в 12");
+        const list = await service.getRemindersList(userId);
+        assertExists(list.includes("1. Reminder 1"));
+        assertExists(list.includes("2. Reminder 2"));
+      });
 
-  delete(userId: number, reminderId: string): Promise<boolean> {
-    const index = this.reminders.findIndex((r) =>
-      r.reminderUserId === userId && r.reminderId === reminderId
-    );
-    if (index > -1) {
-      this.reminders.splice(index, 1);
-      return Promise.resolve(true);
+      await t.step("deleteReminder", async () => {
+        mockKv.store.clear();
+        const reminder = await service.addReminder(
+          userId,
+          "Test Reminder завтра",
+        );
+        assertEquals(mockKv.store.size, 2);
+        const deleted = await service.deleteReminder(
+          userId,
+          reminder.reminderId,
+        );
+        assertEquals(deleted?.reminderId, reminder.reminderId);
+        const reminders = await service.getReminders(userId);
+        assertEquals(reminders.length, 0);
+        assertEquals(mockKv.store.size, 0);
+      });
+
+      await t.step("clearReminders", async () => {
+        mockKv.store.clear();
+        await service.addReminder(userId, "Reminder 1 завтра");
+        await service.addReminder(userId, "Reminder 2 послезавтра");
+        assertEquals(mockKv.store.size, 4);
+        await service.clearReminders(userId);
+        const reminders = await service.getReminders(userId);
+        assertEquals(reminders.length, 0);
+        // Note: clearReminders only deletes from reminders_by_user, not reminders_by_time
+        // This is a potential bug in the source code, but the test reflects current behavior.
+        assertEquals(mockKv.store.size, 2);
+      });
+    } finally {
+      __setKv(originalKv); // 3. Restore the original using the setter
     }
-    return Promise.resolve(false);
-  }
-
-  deleteAll(userId: number): Promise<void> {
-    this.reminders = this.reminders.filter((r) => r.reminderUserId !== userId);
-    return Promise.resolve();
-  }
-}
-
-Deno.test("ReminderService - addReminder", async () => {
-  const mockRepo =
-    new MockReminderRepository() as unknown as ReminderRepository;
-  const service = new ReminderService(mockRepo);
-  const reminder = await service.addReminder(1, "Test Reminder");
-  assertEquals(reminder.reminderString, "Test Reminder");
-  assertEquals(reminder.reminderUserId, 1);
-});
-
-Deno.test("ReminderService - getRemindersList", async () => {
-  const mockRepo =
-    new MockReminderRepository() as unknown as ReminderRepository;
-  const service = new ReminderService(mockRepo);
-  await service.addReminder(1, "Reminder 1");
-  await service.addReminder(1, "Reminder 2");
-  const list = await service.getRemindersList(1);
-  assertExists(list.includes("1. Reminder 1"));
-  assertExists(list.includes("2. Reminder 2"));
-});
-
-Deno.test("ReminderService - deleteReminder", async () => {
-  const mockRepo =
-    new MockReminderRepository() as unknown as ReminderRepository;
-  const service = new ReminderService(mockRepo);
-  const reminder = await service.addReminder(1, "Test Reminder");
-  const deleted = await service.deleteReminder(1, reminder.reminderId);
-  assertEquals(deleted?.reminderId, reminder.reminderId);
-  const reminders = await service.getReminders(1);
-  assertEquals(reminders.length, 0);
-});
-
-Deno.test("ReminderService - clearReminders", async () => {
-  const mockRepo =
-    new MockReminderRepository() as unknown as ReminderRepository;
-  const service = new ReminderService(mockRepo);
-  await service.addReminder(1, "Reminder 1");
-  await service.addReminder(1, "Reminder 2");
-  await service.clearReminders(1);
-  const reminders = await service.getReminders(1);
-  assertEquals(reminders.length, 0);
-});
+  },
+);
